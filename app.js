@@ -6,30 +6,55 @@ const mongoose = require("mongoose");
 
 const productRoutes = require("./api/routes/products");
 const orderRoutes = require("./api/routes/orders");
-const userRoutes = require('./api/routes/user');
+const userRoutes = require("./api/routes/user");
 
-mongoose.connect(
-  // "mongodb+srv://rest-shop:rest-shop@node-rest-shop-7aywh.mongodb.net/test?retryWrites=true&w=majority",
-  "mongodb+srv://" + process.env.MONGO_ATLAS_USER + ":" + process.env.MONGO_ATLAS_PW + "@node-rest-shop-7aywh.mongodb.net/test?retryWrites=true&w=majority",
+mongoose
+  .connect(
+    // "mongodb+srv://rest-shop:rest-shop@node-rest-shop-7aywh.mongodb.net/test?retryWrites=true&w=majority",
+    "mongodb+srv://" +
+      process.env.MONGO_ATLAS_USER +
+      ":" +
+      process.env.MONGO_ATLAS_PW +
+      "@node-rest-shop-7aywh.mongodb.net/test?retryWrites=true&w=majority",
     // "mongodb+srv://rest-shop:@node-rest-shop-7aywh.mongodb.net/test?retryWrites=true&w=majority",
-    { 
-        // user: process.env.MONGO_ATLAS_USER, 
-        // pass: process.env.MONGO_ATLAS_PW,
-        useNewUrlParser: true,
-        useUnifiedTopology: true
-  }
-)
-.then(() => console.log('MongoDB connected...'))
-.catch(err => { // if error we will be here
-    console.error('process.env.MONGO_ATLAS_USER:', process.env.MONGO_ATLAS_USER);
-    console.error('App starting error:', err.stack);
+    {
+      // user: process.env.MONGO_ATLAS_USER,
+      // pass: process.env.MONGO_ATLAS_PW,
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      useCreateIndex: true,
+    }
+  )
+  .then(() => console.log("Mongoose.connect: MongoDB connected"))
+  .catch((err) => {
+    // if error we will be here
+    console.error(
+      "process.env.MONGO_ATLAS_USER:",
+      process.env.MONGO_ATLAS_USER
+    );
+    console.error("App starting error:", err.stack);
     process.exit(1);
-});
+  });
 
 mongoose.Promise = global.Promise;
 
+const mongo = mongoose.connection;
+const debug = require("debug")("blitz");
+mongo.on("error", (error) => {
+  debug("mongo: " + error.name);
+  console.log("mongo: " + error.name);
+});
+mongo.on("connected", () => {
+  debug("mongo: Connected");
+  console.log("mongo: Connected");
+});
+mongo.on("disconnected", () => {
+  debug("mongo: Disconnected");
+  console.log("mongo: Disconnected");
+});
+
 app.use(morgan("dev"));
-app.use('/uploads', express.static('uploads'));
+app.use("/uploads", express.static("uploads"));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
@@ -61,8 +86,8 @@ app.use((error, req, res, next) => {
   res.status(error.status || 500);
   res.json({
     error: {
-      message: error.message
-    }
+      message: error.message,
+    },
   });
 });
 
